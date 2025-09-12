@@ -469,4 +469,113 @@ defmodule PocElixirPhoenixWeb.CoreComponents do
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
   end
+
+  @doc """
+  Renders pagination controls.
+
+  ## Examples
+
+      <.pagination_controls pagination={@pagination} />
+
+  """
+  attr :pagination, :map, required: true
+
+  def pagination_controls(assigns) do
+    ~H"""
+    <div class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+      <div class="flex flex-1 justify-between sm:hidden">
+        <.link
+          :if={@pagination.has_prev}
+          phx-click="navigate_page"
+          phx-value-page={@pagination.page - 1}
+          class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        >
+          Previous
+        </.link>
+        <.link
+          :if={@pagination.has_next}
+          phx-click="navigate_page"
+          phx-value-page={@pagination.page + 1}
+          class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        >
+          Next
+        </.link>
+      </div>
+      <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm text-gray-700">
+            Showing
+            <span class="font-medium">{(@pagination.page - 1) * @pagination.per_page + 1}</span>
+            to
+            <span class="font-medium">
+              {min(@pagination.page * @pagination.per_page, @pagination.total_count)}
+            </span>
+            of <span class="font-medium">{@pagination.total_count}</span>
+            results
+          </p>
+        </div>
+        <div>
+          <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+            <.link
+              :if={@pagination.has_prev}
+              phx-click="navigate_page"
+              phx-value-page={@pagination.page - 1}
+              class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+            >
+              <span class="sr-only">Previous</span>
+              <.icon name="hero-chevron-left" class="h-5 w-5" />
+            </.link>
+
+            <%= for page_num <- pagination_range(@pagination) do %>
+              <.link
+                :if={page_num == @pagination.page}
+                class="relative z-10 inline-flex items-center bg-indigo-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              >
+                {page_num}
+              </.link>
+              <.link
+                :if={page_num != @pagination.page}
+                phx-click="navigate_page"
+                phx-value-page={page_num}
+                class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+              >
+                {page_num}
+              </.link>
+            <% end %>
+
+            <.link
+              :if={@pagination.has_next}
+              phx-click="navigate_page"
+              phx-value-page={@pagination.page + 1}
+              class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+            >
+              <span class="sr-only">Next</span>
+              <.icon name="hero-chevron-right" class="h-5 w-5" />
+            </.link>
+          </nav>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  # Helper function to generate pagination range
+  defp pagination_range(pagination) do
+    current = pagination.page
+    total = pagination.total_pages
+
+    cond do
+      total <= 7 ->
+        1..total
+
+      current <= 4 ->
+        1..5
+
+      current >= total - 3 ->
+        (total - 4)..total
+
+      true ->
+        (current - 2)..(current + 2)
+    end
+  end
 end
