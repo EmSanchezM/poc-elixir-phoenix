@@ -41,8 +41,8 @@ defmodule PocElixirPhoenix.Products do
       [%Product{}, ...]
 
   """
-  def list_products(%Scope{} = scope) do
-    Repo.all_by(Product, user_id: scope.user.id)
+  def list_products(%Scope{} = _scope) do
+    Repo.all(Product)
     |> Repo.preload(:category)
   end
 
@@ -55,7 +55,7 @@ defmodule PocElixirPhoenix.Products do
       %{products: [%Product{}, ...], page: 1, per_page: 10, total_pages: 3, total_count: 26}
 
   """
-  def list_products_paginated(%Scope{} = scope, opts \\ []) do
+  def list_products_paginated(%Scope{} = _scope, opts \\ []) do
     page = Keyword.get(opts, :page, 1)
     per_page = Keyword.get(opts, :per_page, 10)
 
@@ -63,7 +63,6 @@ defmodule PocElixirPhoenix.Products do
 
     base_query =
       from(p in Product,
-        where: p.user_id == ^scope.user.id,
         preload: [:category]
       )
 
@@ -102,8 +101,8 @@ defmodule PocElixirPhoenix.Products do
       ** (Ecto.NoResultsError)
 
   """
-  def get_product!(%Scope{} = scope, id) do
-    Repo.get_by!(Product, id: id, user_id: scope.user.id)
+  def get_product!(%Scope{} = _scope, id) do
+    Repo.get!(Product, id)
     |> Repo.preload(:category)
   end
 
@@ -122,7 +121,7 @@ defmodule PocElixirPhoenix.Products do
   def create_product(%Scope{} = scope, attrs) do
     with {:ok, product = %Product{}} <-
            %Product{}
-           |> Product.changeset(attrs, scope)
+           |> Product.changeset(attrs)
            |> Repo.insert() do
       broadcast_product(scope, {:created, product})
       {:ok, product}
@@ -142,11 +141,9 @@ defmodule PocElixirPhoenix.Products do
 
   """
   def update_product(%Scope{} = scope, %Product{} = product, attrs) do
-    true = product.user_id == scope.user.id
-
     with {:ok, product = %Product{}} <-
            product
-           |> Product.changeset(attrs, scope)
+           |> Product.changeset(attrs)
            |> Repo.update() do
       broadcast_product(scope, {:updated, product})
       {:ok, product}
@@ -166,8 +163,6 @@ defmodule PocElixirPhoenix.Products do
 
   """
   def delete_product(%Scope{} = scope, %Product{} = product) do
-    true = product.user_id == scope.user.id
-
     with {:ok, product = %Product{}} <-
            Repo.delete(product) do
       broadcast_product(scope, {:deleted, product})
@@ -184,10 +179,8 @@ defmodule PocElixirPhoenix.Products do
       %Ecto.Changeset{data: %Product{}}
 
   """
-  def change_product(%Scope{} = scope, %Product{} = product, attrs \\ %{}) do
-    true = product.user_id == scope.user.id
-
-    Product.changeset(product, attrs, scope)
+  def change_product(%Scope{} = _scope, %Product{} = product, attrs \\ %{}) do
+    Product.changeset(product, attrs)
   end
 
   @doc """

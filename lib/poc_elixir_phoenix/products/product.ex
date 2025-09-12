@@ -5,7 +5,6 @@ defmodule PocElixirPhoenix.Products.Product do
   schema "products" do
     field :name, :string
     field :price, :decimal
-    field :user_id, :id
 
     belongs_to :category, PocElixirPhoenix.Categories.Category
 
@@ -13,11 +12,10 @@ defmodule PocElixirPhoenix.Products.Product do
   end
 
   @doc false
-  def changeset(product, attrs, user_scope) do
+  def changeset(product, attrs) do
     product
     |> cast(attrs, [:name, :price, :category_id])
     |> validate_required([:name, :price])
-    |> put_change(:user_id, user_scope.user.id)
     |> foreign_key_constraint(:category_id)
   end
 end

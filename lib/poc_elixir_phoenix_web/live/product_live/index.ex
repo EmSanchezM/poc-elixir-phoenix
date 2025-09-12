@@ -2,6 +2,7 @@ defmodule PocElixirPhoenixWeb.ProductLive.Index do
   use PocElixirPhoenixWeb, :live_view
 
   alias PocElixirPhoenix.Products
+  alias PocElixirPhoenix.Accounts
 
   @per_page 10
 
@@ -15,7 +16,11 @@ defmodule PocElixirPhoenixWeb.ProductLive.Index do
           Showing {@pagination.per_page} of {@pagination.total_count} products
         </:subtitle>
         <:actions>
-          <.button variant="primary" navigate={~p"/products/new"}>
+          <.button
+            :if={Accounts.can?(@current_scope.user, :create, :product)}
+            variant="primary"
+            navigate={~p"/products/new"}
+          >
             <.icon name="hero-plus" /> New Product
           </.button>
         </:actions>
@@ -35,10 +40,16 @@ defmodule PocElixirPhoenixWeb.ProductLive.Index do
           <div class="sr-only">
             <.link navigate={~p"/products/#{product}"}>Show</.link>
           </div>
-          <.link navigate={~p"/products/#{product}/edit"}>Edit</.link>
+          <.link
+            :if={Accounts.can?(@current_scope.user, :update, :product)}
+            navigate={~p"/products/#{product}/edit"}
+          >
+            Edit
+          </.link>
         </:action>
         <:action :let={{id, product}}>
           <.link
+            :if={Accounts.can?(@current_scope.user, :delete, :product)}
             phx-click={JS.push("delete", value: %{id: product.id}) |> hide("##{id}")}
             data-confirm="Are you sure?"
           >
@@ -70,16 +81,26 @@ defmodule PocElixirPhoenixWeb.ProductLive.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    product = Products.get_product!(socket.assigns.current_scope, id)
-    {:ok, _} = Products.delete_product(socket.assigns.current_scope, product)
+    current_user = socket.assigns.current_scope.user
 
-    # Reload current page after deletion
-    pagination = load_products(socket.assigns.current_scope, socket.assigns.pagination.page)
+    case Accounts.authorize(current_user, :delete, :product) do
+      :ok ->
+        product = Products.get_product!(socket.assigns.current_scope, id)
+        {:ok, _} = Products.delete_product(socket.assigns.current_scope, product)
 
-    {:noreply,
-     socket
-     |> assign(:pagination, pagination)
-     |> stream(:products, pagination.products, reset: true)}
+        # Reload current page after deletion
+        pagination = load_products(socket.assigns.current_scope, socket.assigns.pagination.page)
+
+        {:noreply,
+         socket
+         |> assign(:pagination, pagination)
+         |> stream(:products, pagination.products, reset: true)}
+
+      {:error, :unauthorized} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "You don't have permission to delete products.")}
+    end
   end
 
   @impl true
