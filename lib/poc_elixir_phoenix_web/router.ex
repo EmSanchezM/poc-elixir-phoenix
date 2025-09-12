@@ -66,6 +66,8 @@ defmodule PocElixirPhoenixWeb.Router do
       live "/categories/:id/edit", CategoryLive.Form, :edit
       live "/categories/:id", CategoryLive.Show, :show
       live "/categories/:id/show/edit", CategoryLive.Form, :edit
+
+      live "/admin/users", UserLive.Index, :index
     end
 
     post "/users/update-password", UserSessionController, :update_password
