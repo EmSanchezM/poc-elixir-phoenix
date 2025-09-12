@@ -62,7 +62,7 @@ defmodule PocElixirPhoenixWeb.CategoryLive.Form do
   end
 
   defp apply_action(socket, :new, _params) do
-    category = %Category{user_id: socket.assigns.current_scope.user.id}
+    category = %Category{}
 
     socket
     |> assign(:page_title, "New Category")

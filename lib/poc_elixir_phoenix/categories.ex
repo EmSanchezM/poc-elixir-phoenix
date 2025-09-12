@@ -10,7 +10,7 @@ defmodule PocElixirPhoenix.Categories do
   alias PocElixirPhoenix.Accounts.Scope
 
   @doc """
-  Subscribes to scoped notifications about any category changes.
+  Subscribes to notifications about any category changes.
 
   The broadcasted messages match the pattern:
 
@@ -19,16 +19,12 @@ defmodule PocElixirPhoenix.Categories do
     * {:deleted, %Category{}}
 
   """
-  def subscribe_categories(%Scope{} = scope) do
-    key = scope.user.id
-
-    Phoenix.PubSub.subscribe(PocElixirPhoenix.PubSub, "user:#{key}:categories")
+  def subscribe_categories(%Scope{} = _scope) do
+    Phoenix.PubSub.subscribe(PocElixirPhoenix.PubSub, "categories")
   end
 
-  defp broadcast_category(%Scope{} = scope, message) do
-    key = scope.user.id
-
-    Phoenix.PubSub.broadcast(PocElixirPhoenix.PubSub, "user:#{key}:categories", message)
+  defp broadcast_category(message) do
+    Phoenix.PubSub.broadcast(PocElixirPhoenix.PubSub, "categories", message)
   end
 
   @doc """
@@ -40,8 +36,8 @@ defmodule PocElixirPhoenix.Categories do
       [%Category{}, ...]
 
   """
-  def list_categories(%Scope{} = scope) do
-    Repo.all_by(Category, user_id: scope.user.id)
+  def list_categories(%Scope{} = _scope) do
+    Repo.all(Category)
     |> Repo.preload(:products)
   end
 
@@ -54,7 +50,7 @@ defmodule PocElixirPhoenix.Categories do
       %{categories: [%Category{}, ...], page: 1, per_page: 10, total_pages: 3, total_count: 26}
 
   """
-  def list_categories_paginated(%Scope{} = scope, opts \\ []) do
+  def list_categories_paginated(%Scope{} = _scope, opts \\ []) do
     page = Keyword.get(opts, :page, 1)
     per_page = Keyword.get(opts, :per_page, 10)
 
@@ -62,7 +58,6 @@ defmodule PocElixirPhoenix.Categories do
 
     base_query =
       from(c in Category,
-        where: c.user_id == ^scope.user.id,
         preload: [:products]
       )
 
@@ -101,8 +96,8 @@ defmodule PocElixirPhoenix.Categories do
       ** (Ecto.NoResultsError)
 
   """
-  def get_category!(%Scope{} = scope, id) do
-    Repo.get_by!(Category, id: id, user_id: scope.user.id)
+  def get_category!(%Scope{} = _scope, id) do
+    Repo.get!(Category, id)
     |> Repo.preload(:products)
   end
 
@@ -118,12 +113,12 @@ defmodule PocElixirPhoenix.Categories do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_category(%Scope{} = scope, attrs) do
+  def create_category(%Scope{} = _scope, attrs) do
     with {:ok, category = %Category{}} <-
            %Category{}
-           |> Category.changeset(attrs, scope)
+           |> Category.changeset(attrs)
            |> Repo.insert() do
-      broadcast_category(scope, {:created, category})
+      broadcast_category({:created, category})
       {:ok, category}
     end
   end
@@ -140,14 +135,12 @@ defmodule PocElixirPhoenix.Categories do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_category(%Scope{} = scope, %Category{} = category, attrs) do
-    true = category.user_id == scope.user.id
-
+  def update_category(%Scope{} = _scope, %Category{} = category, attrs) do
     with {:ok, category = %Category{}} <-
            category
-           |> Category.changeset(attrs, scope)
+           |> Category.changeset(attrs)
            |> Repo.update() do
-      broadcast_category(scope, {:updated, category})
+      broadcast_category({:updated, category})
       {:ok, category}
     end
   end
@@ -164,12 +157,10 @@ defmodule PocElixirPhoenix.Categories do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_category(%Scope{} = scope, %Category{} = category) do
-    true = category.user_id == scope.user.id
-
+  def delete_category(%Scope{} = _scope, %Category{} = category) do
     with {:ok, category = %Category{}} <-
            Repo.delete(category) do
-      broadcast_category(scope, {:deleted, category})
+      broadcast_category({:deleted, category})
       {:ok, category}
     end
   end
@@ -183,9 +174,7 @@ defmodule PocElixirPhoenix.Categories do
       %Ecto.Changeset{data: %Category{}}
 
   """
-  def change_category(%Scope{} = scope, %Category{} = category, attrs \\ %{}) do
-    true = category.user_id == scope.user.id
-
-    Category.changeset(category, attrs, scope)
+  def change_category(%Scope{} = _scope, %Category{} = category, attrs \\ %{}) do
+    Category.changeset(category, attrs)
   end
 end

@@ -192,8 +192,8 @@ defmodule PocElixirPhoenix.Products do
       [{"Category Name", 1}, ...]
 
   """
-  def list_categories_for_select(%Scope{} = scope) do
-    Repo.all_by(Category, user_id: scope.user.id)
+  def list_categories_for_select(%Scope{} = _scope) do
+    Repo.all(Category)
     |> Enum.map(&{&1.name, &1.id})
   end
 end
