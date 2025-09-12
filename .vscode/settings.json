@@ -1,0 +1,94 @@
+{
+  "elixirLS.dialyzerEnabled": true,
+  "elixirLS.fetchDeps": false,
+  "elixirLS.suggestSpecs": true,
+  "elixirLS.signatureAfterComplete": true,
+  "elixirLS.enableTestLenses": true,
+  "elixirLS.mixEnv": "dev",
+  "elixirLS.projectDir": "",
+  "elixirLS.additionalWatchedExtensions": [".heex", ".html.heex", ".leex", ".html.leex"],
+  
+  "files.associations": {
+    "*.heex": "phoenix-heex",
+    "*.html.heex": "phoenix-heex",
+    "*.leex": "eex",
+    "*.html.leex": "eex",
+    "*.eex": "eex",
+    "*.ex": "elixir",
+    "*.exs": "elixir"
+  },
+  
+  "emmet.includeLanguages": {
+    "phoenix-heex": "html",
+    "eex": "html"
+  },
+  
+  "emmet.triggerExpansionOnTab": true,
+  
+  "tailwindCSS.includeLanguages": {
+    "phoenix-heex": "html",
+    "eex": "html"
+  },
+  
+  "tailwindCSS.files.exclude": [
+    "**/.git/**",
+    "**/node_modules/**",
+    "**/_build/**",
+    "**/deps/**"
+  ],
+  
+  "tailwindCSS.experimental.classRegex": [
+    "class[:]\\s*\"([^\"]*)"
+  ],
+  
+  "[elixir]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.wordBasedSuggestions": "off",
+    "editor.formatOnSave": true,
+    "editor.trimAutoWhitespace": true
+  },
+  
+  "[phoenix-heex]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "JakeBecker.elixir-ls",
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": true
+    },
+    "editor.suggest.insertMode": "replace"
+  },
+  
+  "[eex]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.formatOnSave": true
+  },
+  
+  "search.exclude": {
+    "**/_build": true,
+    "**/deps": true,
+    "**/node_modules": true,
+    "**/.elixir_ls": true
+  },
+  
+  "files.watcherExclude": {
+    "**/_build/**": true,
+    "**/deps/**": true,
+    "**/node_modules/**": true,
+    "**/.elixir_ls/**": true
+  },
+  
+  "html.suggest.html5": true,
+  "html.autoClosingTags": true,
+  "html.completion.attributeDefaultValue": "doublequotes",
+  
+  "css.validate": true,
+  "css.lint.unknownAtRules": "ignore",
+  
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": true
+}
