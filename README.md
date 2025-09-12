@@ -13,3 +13,4 @@ Proof of concept for the basic features of Phoenix
 * Generate crud basic very easy:
     - Command: `mix phx.gen.live <Module> <Schema> <attributes:type>`
     - Example: `mix phx.gen.live Product products name:string price:decimal`
+* Generate data with seed `mix run priv/repo/seeds.exs`
