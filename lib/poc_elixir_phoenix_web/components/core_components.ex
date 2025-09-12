@@ -117,6 +117,41 @@ defmodule PocElixirPhoenixWeb.CoreComponents do
   end
 
   @doc """
+  Renders a badge component.
+
+  ## Examples
+
+      <.badge>Default</.badge>
+      <.badge variant="secondary">Secondary</.badge>
+      <.badge variant="warning">Warning</.badge>
+      <.badge variant="destructive">Destructive</.badge>
+  """
+  attr :variant, :string, default: "default", values: ~w(default secondary warning destructive)
+  attr :class, :string, default: nil
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def badge(assigns) do
+    variants = %{
+      "default" => "badge-primary",
+      "secondary" => "badge-secondary",
+      "warning" => "badge-warning",
+      "destructive" => "badge-error"
+    }
+
+    assigns =
+      assign_new(assigns, :class, fn ->
+        ["badge", Map.fetch!(variants, assigns.variant)]
+      end)
+
+    ~H"""
+    <span class={@class} {@rest}>
+      {render_slot(@inner_block)}
+    </span>
+    """
+  end
+
+  @doc """
   Renders an input with label and error messages.
 
   A `Phoenix.HTML.FormField` may be passed as argument,

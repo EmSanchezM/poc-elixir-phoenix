@@ -8,9 +8,14 @@ defmodule PocElixirPhoenix.Accounts.User do
     field :hashed_password, :string, redact: true
     field :confirmed_at, :utc_datetime
     field :authenticated_at, :utc_datetime, virtual: true
+    field :role, :string, default: "user"
 
     timestamps(type: :utc_datetime)
   end
+
+  @valid_roles ~w(superuser admin user)
+
+  def valid_roles, do: @valid_roles
 
   @doc """
   A user changeset for registering or changing the email.
@@ -127,4 +132,55 @@ defmodule PocElixirPhoenix.Accounts.User do
     Pbkdf2.no_user_verify()
     false
   end
+
+  @doc """
+  A user changeset for changing the role.
+  """
+  def role_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:role])
+    |> validate_inclusion(:role, @valid_roles)
+  end
+
+  @doc """
+  Checks if a user has a specific role.
+  """
+  def has_role?(%__MODULE__{role: role}, required_role) when role == required_role, do: true
+  def has_role?(_, _), do: false
+
+  @doc """
+  Checks if a user is a superuser.
+  """
+  def superuser?(%__MODULE__{role: "superuser"}), do: true
+  def superuser?(_), do: false
+
+  @doc """
+  Checks if a user is an admin or superuser.
+  """
+  def admin?(%__MODULE__{role: role}) when role in ["admin", "superuser"], do: true
+  def admin?(_), do: false
+
+  @doc """
+  Checks if a user can manage products (create, update, delete).
+  """
+  def can_manage_products?(%__MODULE__{role: role}) when role in ["admin", "superuser"], do: true
+  def can_manage_products?(_), do: false
+
+  @doc """
+  Checks if a user can manage categories (create, update, delete).
+  """
+  def can_manage_categories?(%__MODULE__{role: role}) when role in ["admin", "superuser"],
+    do: true
+
+  def can_manage_categories?(_), do: false
+
+  @doc """
+  Checks if a user can view products.
+  """
+  def can_view_products?(%__MODULE__{}), do: true
+
+  @doc """
+  Checks if a user can view categories.
+  """
+  def can_view_categories?(%__MODULE__{}), do: true
 end

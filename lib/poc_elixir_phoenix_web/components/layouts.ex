@@ -49,6 +49,10 @@ defmodule PocElixirPhoenixWeb.Layouts do
             <li><a href={~p"/products"} class="btn btn-ghost">Products</a></li>
             
             <li><a href={~p"/categories"} class="btn btn-ghost">Categories</a></li>
+            
+            <%= if PocElixirPhoenix.Accounts.can?(@current_scope.user, :index, :user) do %>
+              <li><a href={~p"/admin/users"} class="btn btn-ghost">Users</a></li>
+            <% end %>
           <% end %>
           
           <li><.theme_toggle /></li>

@@ -6,7 +6,7 @@ defmodule PocElixirPhoenix.Accounts do
   import Ecto.Query, warn: false
   alias PocElixirPhoenix.Repo
 
-  alias PocElixirPhoenix.Accounts.{User, UserToken, UserNotifier}
+  alias PocElixirPhoenix.Accounts.{User, UserToken, UserNotifier, Authorization}
 
   ## Database getters
 
@@ -282,6 +282,83 @@ defmodule PocElixirPhoenix.Accounts do
   end
 
   ## Token helper
+
+  ## Role management
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for changing the user role.
+
+  ## Examples
+
+      iex> change_user_role(user)
+      %Ecto.Changeset{data: %User{}}
+
+  """
+  def change_user_role(user, attrs \\ %{}) do
+    User.role_changeset(user, attrs)
+  end
+
+  @doc """
+  Updates the user role.
+
+  ## Examples
+
+      iex> update_user_role(user, %{role: "admin"})
+      {:ok, %User{}}
+
+      iex> update_user_role(user, %{role: "invalid"})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_user_role(user, attrs) do
+    user
+    |> User.role_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Lists all users with their roles.
+
+  ## Examples
+
+      iex> list_users()
+      [%User{}, ...]
+
+  """
+  def list_users do
+    Repo.all(User)
+  end
+
+  @doc """
+  Lists users by role.
+
+  ## Examples
+
+      iex> list_users_by_role("admin")
+      [%User{}, ...]
+
+  """
+  def list_users_by_role(role) do
+    from(u in User, where: u.role == ^role)
+    |> Repo.all()
+  end
+
+  ## Authorization
+
+  @doc """
+  Checks if a user can perform a specific action on a resource.
+  """
+  def can?(user, action, resource), do: Authorization.can?(user, action, resource)
+
+  @doc """
+  Raises an exception if the user doesn't have permission.
+  """
+  def authorize!(user, action, resource), do: Authorization.authorize!(user, action, resource)
+
+  @doc """
+  Returns an error tuple if the user doesn't have permission.
+  """
+  def authorize(user, action, resource), do: Authorization.authorize(user, action, resource)
 
   defp update_user_and_delete_all_tokens(changeset) do
     Repo.transact(fn ->
