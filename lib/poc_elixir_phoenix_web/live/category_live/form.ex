@@ -3,6 +3,7 @@ defmodule PocElixirPhoenixWeb.CategoryLive.Form do
 
   alias PocElixirPhoenix.Categories
   alias PocElixirPhoenix.Categories.Category
+  alias PocElixirPhoenix.Accounts
 
   @impl true
   def render(assigns) do
@@ -27,10 +28,25 @@ defmodule PocElixirPhoenixWeb.CategoryLive.Form do
 
   @impl true
   def mount(params, _session, socket) do
-    {:ok,
-     socket
-     |> assign(:return_to, return_to(params["return_to"]))
-     |> apply_action(socket.assigns.live_action, params)}
+    current_user = socket.assigns.current_scope.user
+    action = socket.assigns.live_action
+
+    # Check permissions based on action
+    permission_action = if action == :new, do: :create, else: :update
+
+    case Accounts.authorize(current_user, permission_action, :category) do
+      :ok ->
+        {:ok,
+         socket
+         |> assign(:return_to, return_to(params["return_to"]))
+         |> apply_action(action, params)}
+
+      {:error, :unauthorized} ->
+        {:ok,
+         socket
+         |> put_flash(:error, "You don't have permission to perform this action.")
+         |> push_navigate(to: ~p"/categories")}
+    end
   end
 
   defp return_to("show"), do: "show"
@@ -71,36 +87,56 @@ defmodule PocElixirPhoenixWeb.CategoryLive.Form do
   end
 
   defp save_category(socket, :edit, category_params) do
-    case Categories.update_category(
-           socket.assigns.current_scope,
-           socket.assigns.category,
-           category_params
-         ) do
-      {:ok, category} ->
+    current_user = socket.assigns.current_scope.user
+
+    case Accounts.authorize(current_user, :update, :category) do
+      :ok ->
+        case Categories.update_category(
+               socket.assigns.current_scope,
+               socket.assigns.category,
+               category_params
+             ) do
+          {:ok, category} ->
+            {:noreply,
+             socket
+             |> put_flash(:info, "Category updated successfully")
+             |> push_navigate(
+               to: return_path(socket.assigns.current_scope, socket.assigns.return_to, category)
+             )}
+
+          {:error, %Ecto.Changeset{} = changeset} ->
+            {:noreply, assign(socket, form: to_form(changeset))}
+        end
+
+      {:error, :unauthorized} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Category updated successfully")
-         |> push_navigate(
-           to: return_path(socket.assigns.current_scope, socket.assigns.return_to, category)
-         )}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
+         |> put_flash(:error, "You don't have permission to update categories.")}
     end
   end
 
   defp save_category(socket, :new, category_params) do
-    case Categories.create_category(socket.assigns.current_scope, category_params) do
-      {:ok, category} ->
+    current_user = socket.assigns.current_scope.user
+
+    case Accounts.authorize(current_user, :create, :category) do
+      :ok ->
+        case Categories.create_category(socket.assigns.current_scope, category_params) do
+          {:ok, category} ->
+            {:noreply,
+             socket
+             |> put_flash(:info, "Category created successfully")
+             |> push_navigate(
+               to: return_path(socket.assigns.current_scope, socket.assigns.return_to, category)
+             )}
+
+          {:error, %Ecto.Changeset{} = changeset} ->
+            {:noreply, assign(socket, form: to_form(changeset))}
+        end
+
+      {:error, :unauthorized} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Category created successfully")
-         |> push_navigate(
-           to: return_path(socket.assigns.current_scope, socket.assigns.return_to, category)
-         )}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
+         |> put_flash(:error, "You don't have permission to create categories.")}
     end
   end
 

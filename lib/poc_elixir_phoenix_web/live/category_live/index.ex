@@ -2,6 +2,7 @@ defmodule PocElixirPhoenixWeb.CategoryLive.Index do
   use PocElixirPhoenixWeb, :live_view
 
   alias PocElixirPhoenix.Categories
+  alias PocElixirPhoenix.Accounts
 
   @per_page 10
 
@@ -14,7 +15,11 @@ defmodule PocElixirPhoenixWeb.CategoryLive.Index do
         <:subtitle>Showing {@pagination.per_page} of {@pagination.total_count} categories</:subtitle>
         
         <:actions>
-          <.button variant="primary" navigate={~p"/categories/new"}>
+          <.button
+            :if={Accounts.can?(@current_scope.user, :create, :category)}
+            variant="primary"
+            navigate={~p"/categories/new"}
+          >
             <.icon name="hero-plus" /> New Category
           </.button>
         </:actions>
@@ -35,11 +40,18 @@ defmodule PocElixirPhoenixWeb.CategoryLive.Index do
         
         <:action :let={{_id, category}}>
           <div class="sr-only"><.link navigate={~p"/categories/#{category}"}>Show</.link></div>
-           <.link navigate={~p"/categories/#{category}/edit"}>Edit</.link>
+          
+          <.link
+            :if={Accounts.can?(@current_scope.user, :update, :category)}
+            navigate={~p"/categories/#{category}/edit"}
+          >
+            Edit
+          </.link>
         </:action>
         
         <:action :let={{id, category}}>
           <.link
+            :if={Accounts.can?(@current_scope.user, :delete, :category)}
             phx-click={JS.push("delete", value: %{id: category.id}) |> hide("##{id}")}
             data-confirm="Are you sure?"
           >
@@ -70,16 +82,26 @@ defmodule PocElixirPhoenixWeb.CategoryLive.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    category = Categories.get_category!(socket.assigns.current_scope, id)
-    {:ok, _} = Categories.delete_category(socket.assigns.current_scope, category)
+    current_user = socket.assigns.current_scope.user
 
-    # Reload current page after deletion
-    pagination = load_categories(socket.assigns.current_scope, socket.assigns.pagination.page)
+    case Accounts.authorize(current_user, :delete, :category) do
+      :ok ->
+        category = Categories.get_category!(socket.assigns.current_scope, id)
+        {:ok, _} = Categories.delete_category(socket.assigns.current_scope, category)
 
-    {:noreply,
-     socket
-     |> assign(:pagination, pagination)
-     |> stream(:categories, pagination.categories, reset: true)}
+        # Reload current page after deletion
+        pagination = load_categories(socket.assigns.current_scope, socket.assigns.pagination.page)
+
+        {:noreply,
+         socket
+         |> assign(:pagination, pagination)
+         |> stream(:categories, pagination.categories, reset: true)}
+
+      {:error, :unauthorized} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "You don't have permission to delete categories.")}
+    end
   end
 
   @impl true
