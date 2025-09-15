@@ -8,7 +8,7 @@ defmodule PocElixirPhoenixWeb.ProductLiveTest do
   @update_attrs %{name: "some updated name", price: "456.7"}
   @invalid_attrs %{name: nil, price: nil}
 
-  setup :register_and_log_in_user
+  setup :register_and_log_in_admin
 
   defp create_product(%{scope: scope}) do
     product = product_fixture(scope)

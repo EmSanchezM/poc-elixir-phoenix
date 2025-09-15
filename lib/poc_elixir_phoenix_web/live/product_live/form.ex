@@ -13,7 +13,7 @@ defmodule PocElixirPhoenixWeb.ProductLive.Form do
         {@page_title}
         <:subtitle>Use this form to manage product records in your database.</:subtitle>
       </.header>
-
+      
       <.form for={@form} id="product-form" phx-change="validate" phx-submit="save">
         <.input field={@form[:name]} type="text" label="Name" />
         <.input field={@form[:price]} type="number" label="Price" step="any" />
