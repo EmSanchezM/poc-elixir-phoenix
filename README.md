@@ -14,3 +14,4 @@ Proof of concept for the basic features of Phoenix
     - Command: `mix phx.gen.live <Module> <Schema> <attributes:type>`
     - Example: `mix phx.gen.live Product products name:string price:decimal`
 * Generate data with seed `mix run priv/repo/seeds.exs`
+* Uploads files direct to server
